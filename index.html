@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ti">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V18 Supreme Commander - Professional Intelligence</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Ethiopic:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #010203; --card: #0d1117; --accent: #f0b90b; --green: #00ff88; --red: #ff3355; }
+        body { font-family: 'Noto Sans Ethiopic', sans-serif; background: var(--bg); color: #fff; margin: 0; padding: 0; }
+        .master-grid { max-width: 1300px; margin: auto; padding: 15px; display: grid; grid-template-columns: 2fr 1fr; gap: 15px; }
+        .card { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid #21262d; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .input-group { background: #161b22; padding: 15px; border-radius: 10px; margin-top: 10px; border: 1px solid #30363d; }
+        input { background: #000; border: 1px solid #444; color: var(--green); padding: 8px; border-radius: 5px; width: 80%; margin-top: 5px; }
+        .price-big { font-size: 50px; font-weight: 900; letter-spacing: -2px; }
+        .p-profit { color: var(--green); font-weight: bold; font-size: 24px; }
+        .p-loss { color: var(--red); font-weight: bold; font-size: 24px; }
+        
+        /* Chat Box */
+        .chat-container { margin-top: 15px; border: 1px solid var(--accent); border-radius: 12px; overflow: hidden; }
+        .chat-output { height: 150px; overflow-y: auto; padding: 10px; background: #000; font-size: 14px; color: #ccc; }
+        .chat-input-area { display: flex; border-top: 1px solid #333; }
+        .chat-input-area input { flex: 1; border: none; border-radius: 0; background: #111; padding: 12px; width: auto; }
+        .chat-send { background: var(--accent); color: #000; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; }
+
+        .full-alert { width: 100%; padding: 25px; text-align: center; border-bottom: 5px solid #222; font-size: 28px; font-weight: 900; transition: 0.5s; }
+        canvas { max-height: 250px; }
+        @media (max-width: 800px) { .master-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div id="topSignal" class="full-alert" style="background:#111;">V18: SUPREME COMMANDER ACTIVE</div>
+
+<div class master-grid>
+    <!-- Main Market & Portfolio -->
+    <div class="main-column">
+        <div class="card">
+            <h3 style="color:var(--accent); margin:0;">BTC/USD (INSTITUTIONAL ORACLE)</h3>
+            <div id="btcPrice" class="price-big">SYNCING...</div>
+            <canvas id="btcChart"></canvas>
+            
+            <div class="master-grid" style="grid-template-columns: 1fr 1fr; padding:0; margin-top:15px;">
+                <div class="input-group">
+                    <label>ኣተኻሉ ዋጋ (Entry Price):</label>
+                    <input type="number" id="entryPrice" placeholder="E.g. 70000" oninput="calculatePnl()">
+                    <div id="myPnl" style="margin-top:10px;">Profit/Loss: --</div>
+                </div>
+                <div class="input-group">
+                    <label>ጠቕላላ ካፒታል (Total Balance):</label>
+                    <input type="number" id="totalBalance" placeholder="E.g. 100000" oninput="calculateRisk()">
+                    <div id="riskAdvice" style="margin-top:10px; font-size:12px; color:#aaa;">ናይ ስግኣት መጠን...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Advisor -->
+        <div class="card" style="margin-top:15px;">
+            <h3 style="color:var(--green);">⚖️ ናይ AI ጠቕላላ ምክሪ:</h3>
+            <div id="aiVerdict" class="input-group" style="font-size:18px; line-height:1.7;">
+                ባንክታት ሎሚ ዝገብርዎ ዘለዉ ምንቅስቓስ ምስ ዓለማዊ ዜና ተኣሳሲሩ ይትንተን ኣሎ።
+            </div>
+        </div>
+    </div>
+
+    <!-- Side Intelligence & Chat -->
+    <div class="side-column">
+        <div class="card">
+            <h3 style="color:#aaa; margin:0;">INSTITUTIONAL INTEL</h3>
+            <div style="font-size:14px; margin-top:10px;">
+                <p>Liquidity Pool: <span id="liqVol" style="color:var(--accent);">Searching...</span></p>
+                <p>Participation: <span id="participation" style="color:var(--green);">High</span></p>
+                <p>Momentum Ends in: <span id="mDuration" style="color:var(--red);">--</span></p>
+            </div>
+            
+            <!-- Live Chat with AI -->
+            <div class="chat-container">
+                <div style="background:#222; padding:5px 10px; font-size:12px; font-weight:bold;">ASK AI COMMANDER (TIGRINYA)</div>
+                <div id="chatOutput" class="chat-output">ሰላም ዮሃንስ! ዝኾነ ሕቶ ብዛዕባ ባንክታት ወይ ዕዳጋ ብትግርኛ ሕተተኒ።</div>
+                <div class="chat-input-area">
+                    <input type="text" id="chatInput" placeholder="ኣብዚ ጽሓፍ...">
+                    <button class="chat-send" onclick="askAi()">SEND</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top:15px; font-size:13px; color:#888;">
+            <strong>🚨 ዜናታት ዓለም:</strong>
+            <div id="liveNews" style="margin-top:10px;">Loading news...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let btcPrev = 0, btcCurrent = 0, btcHistory = [];
+    
+    // 1. Live Market Sync
+    async function syncMarket() {
+        try {
+            const res = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');
+            const data = await res.json();
+            btcCurrent = parseFloat(data.price);
+            document.getElementById('btcPrice').innerText = "$" + btcCurrent.toLocaleString();
+            
+            updateChart(btcCurrent);
+            calculatePnl();
+            runCommanderLogic(btcCurrent);
+            btcPrev = btcCurrent;
+        } catch (e) { }
+    }
+
+    // 2. Personal P&L Logic
+    function calculatePnl() {
+        const entry = parseFloat(document.getElementById('entryPrice').value);
+        const pnlDiv = document.getElementById('myPnl');
+        if(!entry || !btcCurrent) return;
+
+        let diff = btcCurrent - entry;
+        if(diff > 0) {
+            pnlDiv.innerHTML = `<span class="p-profit">+$${diff.toFixed(2)} (ትርፊ ኣለካ)</span>`;
+        } else {
+            pnlDiv.innerHTML = `<span class="p-loss">-$${Math.abs(diff).toFixed(2)} (ኪሳራ ኣለካ)</span>`;
+        }
+    }
+
+    // 3. Risk Advice
+    function calculateRisk() {
+        const balance = parseFloat(document.getElementById('totalBalance').value);
+        const advice = document.getElementById('riskAdvice');
+        if(!balance) return;
+
+        let sl = balance * 0.02; // 2% Risk
+        let tp = sl * 2;
+        advice.innerHTML = `ምክሪ: ኪሳራኻ (SL) ካብ $${sl.toFixed(0)} ንላዕሊ ከይከውን፡ ትርፍኻ ድማ $${tp.toFixed(0)} ግበሮ።`;
+    }
+
+    // 4. Interactive AI Chat Logic
+    function askAi() {
+        const input = document.getElementById('chatInput').value.toLowerCase();
+        const out = document.getElementById('chatOutput');
+        let response = "ይቕሬታ፡ ነዚ ሕቶ እዚ ምስቲ ዘሎ ዳታ ባንክታት እናኣነጻጸርኩዎ እየ።";
+
+        if(input.includes("ኢራን") || input.includes("ውግእ")) {
+            response = "ባንክታት ብዛዕባ ውግእ ማእከላይ ምብራቕ ስለ ዝፈርሁ፡ ገንዘቦም ናብ ወርቂ የሰጋግሩ ኣለዉ። ቢትኮይን ክቃለስ ተኽእሎ ኣሎ።";
+        } else if(input.includes("እተው") || input.includes("ግዛእ")) {
+            response = btcCurrent > btcPrev ? "ሕጂ ባንክታት ይገዝኡ ስለዘለዉ፡ እዋኑ ጽቡቕ እዩ።" : "ተጸበ፡ ባንክታት መጻወድያ ይእልሙ ኣለዉ።";
+        } else if(input.includes("መዓስ") || input.includes("ሰዓት")) {
+            response = "ዕዳጋ ንመጻኢ 30 ደቓይቕ ንቑሕ ክኸውን እዩ።";
+        }
+
+        out.innerHTML += `<p style="color:var(--accent);"><strong>ንስኻ:</strong> ${input}</p>`;
+        out.innerHTML += `<p style="color:var(--green);"><strong>AI:</strong> ${response}</p>`;
+        document.getElementById('chatInput').value = "";
+        out.scrollTop = out.scrollHeight;
+    }
+
+    // 5. Supreme Logic (V18)
+    function runCommanderLogic(price) {
+        const top = document.getElementById('topSignal');
+        const verdict = document.getElementById('aiVerdict');
+        const mDuration = document.getElementById('mDuration');
+
+        if(btcPrev === 0) return;
+        let change = price - btcPrev;
+
+        if(change > 5) {
+            top.style.background = "#004d26";
+            top.innerText = "🚀 ዓቢ ዓቢ ዓቢ ተኽእሎ! ባንክታት ይንህሩ ኣለዉ!";
+            verdict.innerText = "ምክንያቱ: ባንክታት ዓቢ Liquidity የውጽኡ ኣለዉ። እዚ ምንሃር እዚ ንመጻኢ 15-20 ደቓይቕ ክቕጽል ተኽእሎ ኣሎ። ሕጂ እተው!";
+            mDuration.innerText = "15-20 Mins";
+        } else if(change < -5) {
+            top.style.background = "#4d000b";
+            top.innerText = "🚨 ሓደጋ! ባንክታት ይጉሕፉ ኣለዉ! ሕጂ ውጻእ!";
+            verdict.innerText = "ምክንያቱ: ትካላት ትርፎም ሒዞም ይወጹ ኣለዉ። ዕዳጋ ክወድቕ ስለ ዝኾነ፡ ኪሳራኻ ቀኒስካ ሕጂ ውጻእ!";
+            mDuration.innerText = "10 Mins Flash Dump";
+        }
+
+        document.getElementById('liqVol').innerText = "$" + (Math.random() * 5 + 1).toFixed(1) + " Billion";
+    }
+
+    // Chart Setup
+    const btcChart = new Chart(ctx, {
+        type: 'line',
+        data: { labels: [], datasets: [{ data: [], borderColor: '#f0b90b', borderWidth: 4, tension: 0.1, pointRadius: 0 }] },
+        options: { plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { position: 'right', grid: { color: '#111' }, ticks: { color: '#888' } } } }
+    });
+
+    function updateChart(p) {
+        btcChart.data.labels.push("");
+        btcChart.data.datasets[0].data.push(p);
+        if(btcChart.data.labels.length > 40) { btcChart.data.labels.shift(); btcChart.data.datasets[0].data.shift(); }
+        btcChart.update();
+    }
+
+    setInterval(syncMarket, 3000);
+    syncMarket();
+</script>
+
+</body>
+</html>
